@@ -27,32 +27,29 @@ parser.add_argument("--ncol", "-ncol", help="set number of columns of the output
 args = parser.parse_args()
 
 def _rasterize_geom(geom, dim, affine_trans, all_touched):
-  out_array = features.rasterize(
-    [(geom, 1)],
-    out_shape   = dim,
-    transform   = affine_trans,
-    fill        = 0,
-    all_touched = all_touched)
-  return out_array
+  return features.rasterize(
+      [(geom, 1)],
+      out_shape=dim,
+      transform=affine_trans,
+      fill=0,
+      all_touched=all_touched,
+  )
 
 def _calculate_cell_coverage(idx, affine_trans, geom):
-    # idx = (row, col)
-    
-    # Construct the geometry of grid cell from its boundaries
-    window = ((idx[0], idx[0]+1), (idx[1], idx[1]+1))
-    ((row_min, row_max), (col_min, col_max)) = window
-    x_min, y_min = (col_min, row_max) * affine_trans
-    x_max, y_max = (col_max, row_min) * affine_trans
-    bounds = (x_min, y_min, x_max, y_max)
-    cell = box(*bounds)
+  # idx = (row, col)
 
-    # get the intersection between the cell and the polygons
-    cell_intersection = cell.intersection(geom)
+  # Construct the geometry of grid cell from its boundaries
+  window = ((idx[0], idx[0]+1), (idx[1], idx[1]+1))
+  ((row_min, row_max), (col_min, col_max)) = window
+  x_min, y_min = (col_min, row_max) * affine_trans
+  x_max, y_max = (col_max, row_min) * affine_trans
+  bounds = (x_min, y_min, x_max, y_max)
+  cell = box(*bounds)
 
-    # calculate the percentage of cell covered by the polygon
-    cell_coverage = int(round(cell_intersection.area / cell.area * 100))
+  # get the intersection between the cell and the polygons
+  cell_intersection = cell.intersection(geom)
 
-    return cell_coverage
+  return int(round(cell_intersection.area / cell.area * 100))
 
 if __name__ == "__main__":
    
